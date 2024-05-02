@@ -1,4 +1,11 @@
 PROTOCOL = "silly_transport_protocol"
+ORES = {
+    "minecraft:coal_ore", "minecraft:iron_ore", "minecraft:gold_ore", "minecraft:diamond_ore",
+    "minecraft:lapis_ore", "minecraft:emerald_ore", "minecraft:copper_ore", "minecraft:redstone_ore",
+    "minecraft:deepslate_coal_ore", "minecraft:deepslate_iron_ore", "minecraft:deepslate_gold_ore", "minecraft:deepslate_diamond_ore",
+    "minecraft:deepslate_lapis_ore", "minecraft:deepslate_emerald_ore", "minecraft:deepslate_copper_ore", "minecraft:deepslate_redstone_ore",
+    "minecraft:nether_gold_ore", "minecraft:nether_quartz_ore", "minecraft:ancient_debris"
+}
 
 local function determine_facing()
     print("Determining facing direction...")
@@ -35,7 +42,9 @@ end
 local facing = determine_facing()
 
 local target = nil
-local forward, up, down, right, left = 0, 0, 0, 0, 0
+local job = nil
+local backtrack = {}
+local forward, back, up, down, right, left = 0, 0, 0, 0, 0, 0
 
 local function turn_left()
     if turtle.turnLeft() then
@@ -72,6 +81,29 @@ local function mysplit(inputstr, sep)
     return t
 end
 
+local function has_value(tab, val)
+    for index, value in ipairs(tab) do
+        if value == val then
+            return true
+        end
+    end
+
+    return false
+end
+
+local function check_ore(check_fun)
+    local block, data = check_fun()
+    if block then
+        local id = data["name"]
+        
+        if has_value(ORES, id) then
+            return true
+        end
+    end
+
+    return false
+end
+
 local function tick()
     while true do
         if forward > 0 then
@@ -79,6 +111,15 @@ local function tick()
                 forward = 0
             else
                 forward = forward - 1
+            end
+            goto continue
+        end
+
+        if back > 0 then
+            if not turtle.back() then
+                back = 0
+            else
+                back = back - 1
             end
             goto continue
         end
@@ -116,6 +157,67 @@ local function tick()
             else
                 left = left - 1
             end
+            goto continue
+        end
+
+        if job == "mine" then
+            if (check_ore(turtle.inspectUp)) then
+                turtle.digUp()
+                if turtle.up() then
+                    table.insert(backtrack, turtle.down)
+                end
+                goto continue
+            end
+            if (check_ore(turtle.inspect)) then
+                turtle.dig()
+                if turtle.forward() then
+                    table.insert(backtrack, turtle.back)
+                end
+                goto continue
+            end
+            if (check_ore(turtle.inspectDown)) then
+                turtle.digDown()
+                if turtle.down() then
+                    table.insert(backtrack, turtle.up)
+                end
+                goto continue
+            end
+            
+            if turn_left() then
+                table.insert(backtrack, turn_right)
+            end
+            if (check_ore(turtle.inspect)) then
+                turtle.dig()
+                if turtle.forward() then
+                    table.insert(backtrack, turtle.back)
+                end
+                goto continue
+            end
+            table.remove(backtrack)()
+
+            if turn_right() then
+                table.insert(backtrack, turn_left)
+            end
+            if (check_ore(turtle.inspect)) then
+                turtle.dig()
+                if turtle.forward() then
+                    table.insert(backtrack, turtle.back)
+                end
+                goto continue
+            end
+            table.remove(backtrack)()
+
+            if #backtrack > 0 then
+                local action = table.remove(backtrack)
+                action()
+            else
+                if (turtle.dig()) then
+                    turtle.forward()
+                else
+                    job = nil
+                end
+            end
+
             goto continue
         end
 
@@ -180,6 +282,9 @@ local function network()
         elseif split_message[1] == "forward" then
             forward = 99999
             rednet.send(id, "success", PROTOCOL)
+        elseif split_message[1] == "back" then
+            back = 99999
+            rednet.send(id, "success", PROTOCOL)
         elseif split_message[1] == "up" then
             up = 99999
             rednet.send(id, "success", PROTOCOL)
@@ -195,7 +300,12 @@ local function network()
         elseif split_message[1] == "stop" then
             forward, up, down, right, left = 0, 0, 0, 0, 0
             target = nil
+            job = nil
+            backtrack = {}
             rednet.send(id, "success", PROTOCOL)
+        elseif split_message[1] == "mine" then
+            job = "mine"
+            rednet.send(id, "starting", PROTOCOL)
 
         elseif split_message[1] == "pos" then
             local x, y, z = gps.locate()
