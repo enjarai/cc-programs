@@ -2,8 +2,10 @@ PROTOCOL = "silly_transport_protocol"
 ORES = {
     "minecraft:coal_ore", "minecraft:iron_ore", "minecraft:gold_ore", "minecraft:diamond_ore",
     "minecraft:lapis_ore", "minecraft:emerald_ore", "minecraft:copper_ore", "minecraft:redstone_ore",
-    "minecraft:deepslate_coal_ore", "minecraft:deepslate_iron_ore", "minecraft:deepslate_gold_ore", "minecraft:deepslate_diamond_ore",
-    "minecraft:deepslate_lapis_ore", "minecraft:deepslate_emerald_ore", "minecraft:deepslate_copper_ore", "minecraft:deepslate_redstone_ore",
+    "minecraft:deepslate_coal_ore", "minecraft:deepslate_iron_ore", "minecraft:deepslate_gold_ore",
+    "minecraft:deepslate_diamond_ore",
+    "minecraft:deepslate_lapis_ore", "minecraft:deepslate_emerald_ore", "minecraft:deepslate_copper_ore",
+    "minecraft:deepslate_redstone_ore",
     "minecraft:nether_gold_ore", "minecraft:nether_quartz_ore", "minecraft:ancient_debris"
 }
 
@@ -11,8 +13,8 @@ local function determine_facing()
     print("Determining facing direction...")
 
     local x, y, z = gps.locate()
-    
-    if not x then 
+
+    if not x then
         print("GPS unavailable, navigation will be limited")
         return nil, nil, nil
     end
@@ -74,8 +76,8 @@ local function mysplit(inputstr, sep)
     if sep == nil then
         sep = "%s"
     end
-    local t={}
-    for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
+    local t = {}
+    for str in string.gmatch(inputstr, "([^" .. sep .. "]+)") do
         table.insert(t, str)
     end
     return t
@@ -95,7 +97,7 @@ local function check_ore(check_fun)
     local block, data = check_fun()
     if block then
         local id = data["name"]
-        
+
         if has_value(ORES, id) then
             return true
         end
@@ -182,7 +184,7 @@ local function tick()
                 end
                 goto continue
             end
-            
+
             if turn_left() then
                 table.insert(backtrack, turn_right)
             end
@@ -222,7 +224,7 @@ local function tick()
 
         if target then
             local x, y, z = gps.locate()
-            
+
             if not target then
                 -- Fix for potential nil after locate
                 goto continue
@@ -268,67 +270,73 @@ local function tick()
 end
 
 local function network()
-    peripheral.find("modem", rednet.open)
-    rednet.host(PROTOCOL, os.getComputerLabel())
+    local id, message = rednet.receive(PROTOCOL)
+    local split_message = mysplit(message, ";")
 
-    while true do
-        local id, message = rednet.receive(PROTOCOL)
-        local split_message = mysplit(message, ";")
-
-        if split_message[1] == "target" then
-            target = vector.new(tonumber(split_message[2]), tonumber(split_message[3]), tonumber(split_message[4]))
-            rednet.send(id, "success", PROTOCOL)
-        elseif split_message[1] == "forward" then
-            forward = 99999
-            rednet.send(id, "success", PROTOCOL)
-        elseif split_message[1] == "back" then
-            back = 99999
-            rednet.send(id, "success", PROTOCOL)
-        elseif split_message[1] == "up" then
-            up = 99999
-            rednet.send(id, "success", PROTOCOL)
-        elseif split_message[1] == "down" then
-            down = 99999
-            rednet.send(id, "success", PROTOCOL)
-        elseif split_message[1] == "left" then
-            left = 1
-            rednet.send(id, "success", PROTOCOL)
-        elseif split_message[1] == "right" then
-            right = 1
-            rednet.send(id, "success", PROTOCOL)
-        elseif split_message[1] == "stop" then
-            forward, up, down, right, left = 0, 0, 0, 0, 0
-            target = nil
-            job = nil
-            backtrack = {}
-            rednet.send(id, "success", PROTOCOL)
-        elseif split_message[1] == "mine" then
-            job = "mine"
-            rednet.send(id, "starting", PROTOCOL)
-
-        elseif split_message[1] == "pos" then
-            local x, y, z = gps.locate()
-            rednet.send(id, ("%d %d %d"):format(x, y, z), PROTOCOL)
-        elseif split_message[1] == "facing" then
-            rednet.send(id, facing, PROTOCOL)
-        elseif split_message[1] == "ping" then
-            rednet.send(id, "pong", PROTOCOL)
-        elseif split_message[1] == "inventory" then
-            local r = {}
-            for i=1,16 do
-                local d = turtle.getItemDetail(i)
-                if not d then
-                    r[i] = textutils.json_null
-                else
-                    r[i] = {
-                        id = d.name,
-                        count = d.count
-                    }
-                end
+    if split_message[1] == "target" then
+        target = vector.new(tonumber(split_message[2]), tonumber(split_message[3]), tonumber(split_message[4]))
+        rednet.send(id, "success", PROTOCOL)
+    elseif split_message[1] == "forward" then
+        forward = 99999
+        rednet.send(id, "success", PROTOCOL)
+    elseif split_message[1] == "back" then
+        back = 99999
+        rednet.send(id, "success", PROTOCOL)
+    elseif split_message[1] == "up" then
+        up = 99999
+        rednet.send(id, "success", PROTOCOL)
+    elseif split_message[1] == "down" then
+        down = 99999
+        rednet.send(id, "success", PROTOCOL)
+    elseif split_message[1] == "left" then
+        left = 1
+        rednet.send(id, "success", PROTOCOL)
+    elseif split_message[1] == "right" then
+        right = 1
+        rednet.send(id, "success", PROTOCOL)
+    elseif split_message[1] == "stop" then
+        forward, up, down, right, left = 0, 0, 0, 0, 0
+        target = nil
+        job = nil
+        backtrack = {}
+        rednet.send(id, "success", PROTOCOL)
+    elseif split_message[1] == "mine" then
+        job = "mine"
+        rednet.send(id, "starting", PROTOCOL)
+    elseif split_message[1] == "pos" then
+        local x, y, z = gps.locate()
+        rednet.send(id, ("%d %d %d"):format(x, y, z), PROTOCOL)
+    elseif split_message[1] == "facing" then
+        rednet.send(id, facing, PROTOCOL)
+    elseif split_message[1] == "ping" then
+        rednet.send(id, "pong", PROTOCOL)
+    elseif split_message[1] == "inventory" then
+        local r = {}
+        for i = 1, 16 do
+            local d = turtle.getItemDetail(i)
+            if not d then
+                r[i] = textutils.json_null
+            else
+                r[i] = {
+                    id = d.name,
+                    count = d.count
+                }
             end
-            rednet.send(id, textutils.serializeJSON(r), PROTOCOL)
         end
+        rednet.send(id, textutils.serializeJSON(r), PROTOCOL)
     end
 end
 
-parallel.waitForAny(tick, network)
+local function safe_loop(fun)
+    local function inner()
+        while true do
+            pcall(fun)
+        end
+    end
+    return inner
+end
+
+peripheral.find("modem", rednet.open)
+rednet.host(PROTOCOL, os.getComputerLabel())
+
+parallel.waitForAny(safe_loop(tick), safe_loop(network))
