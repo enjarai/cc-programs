@@ -211,9 +211,8 @@ local function tick()
                 local action = table.remove(backtrack)
                 action()
             else
-                if (turtle.dig()) then
-                    turtle.forward()
-                else
+                turtle.dig()
+                if not turtle.forward() then
                     job = nil
                 end
             end
