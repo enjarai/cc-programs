@@ -107,166 +107,164 @@ local function check_ore(check_fun)
 end
 
 local function tick()
-    while true do
-        if forward > 0 then
-            if not turtle.forward() then
-                forward = 0
-            else
-                forward = forward - 1
-            end
-            goto continue
+    if forward > 0 then
+        if not turtle.forward() then
+            forward = 0
+        else
+            forward = forward - 1
         end
-
-        if back > 0 then
-            if not turtle.back() then
-                back = 0
-            else
-                back = back - 1
-            end
-            goto continue
-        end
-
-        if up > 0 then
-            if not turtle.up() then
-                up = 0
-            else
-                up = up - 1
-            end
-            goto continue
-        end
-
-        if down > 0 then
-            if not turtle.down() then
-                down = 0
-            else
-                down = down - 1
-            end
-            goto continue
-        end
-
-        if right > 0 then
-            if not turn_right() then
-                right = 0
-            else
-                right = right - 1
-            end
-            goto continue
-        end
-
-        if left > 0 then
-            if not turn_left() then
-                left = 0
-            else
-                left = left - 1
-            end
-            goto continue
-        end
-
-        if job == "mine" then
-            if (check_ore(turtle.inspectUp)) then
-                turtle.digUp()
-                if turtle.up() then
-                    table.insert(backtrack, turtle.down)
-                end
-                goto continue
-            end
-            if (check_ore(turtle.inspect)) then
-                turtle.dig()
-                if turtle.forward() then
-                    table.insert(backtrack, turtle.back)
-                end
-                goto continue
-            end
-            if (check_ore(turtle.inspectDown)) then
-                turtle.digDown()
-                if turtle.down() then
-                    table.insert(backtrack, turtle.up)
-                end
-                goto continue
-            end
-
-            if turn_left() then
-                table.insert(backtrack, turn_right)
-            end
-            if (check_ore(turtle.inspect)) then
-                turtle.dig()
-                if turtle.forward() then
-                    table.insert(backtrack, turtle.back)
-                end
-                goto continue
-            end
-            table.remove(backtrack)()
-
-            if turn_right() then
-                table.insert(backtrack, turn_left)
-            end
-            if (check_ore(turtle.inspect)) then
-                turtle.dig()
-                if turtle.forward() then
-                    table.insert(backtrack, turtle.back)
-                end
-                goto continue
-            end
-            table.remove(backtrack)()
-
-            if #backtrack > 0 then
-                local action = table.remove(backtrack)
-                action()
-            else
-                turtle.dig()
-                if not turtle.forward() then
-                    job = nil
-                end
-            end
-
-            goto continue
-        end
-
-        if target then
-            local x, y, z = gps.locate()
-
-            if not target then
-                -- Fix for potential nil after locate
-                goto continue
-            end
-
-            if y < target.y then
-                up = target.y - y
-                goto continue
-            end
-
-            if x ~= target.x then
-                local nx = normalize(target.x - x)
-                if facing.x ~= nx then
-                    turn_right()
-                    goto continue
-                end
-
-                forward = abs(target.x - x)
-                goto continue
-            end
-
-            if z ~= target.z then
-                local nz = normalize(target.z - z)
-                if facing.z ~= nz then
-                    turn_right()
-                    goto continue
-                end
-
-                forward = abs(target.z - z)
-                goto continue
-            end
-
-            print("Target reached")
-            target = nil
-            down = 999
-            goto continue
-        end
-
-        os.sleep(1)
-
-        ::continue::
+        goto continue
     end
+
+    if back > 0 then
+        if not turtle.back() then
+            back = 0
+        else
+            back = back - 1
+        end
+        goto continue
+    end
+
+    if up > 0 then
+        if not turtle.up() then
+            up = 0
+        else
+            up = up - 1
+        end
+        goto continue
+    end
+
+    if down > 0 then
+        if not turtle.down() then
+            down = 0
+        else
+            down = down - 1
+        end
+        goto continue
+    end
+
+    if right > 0 then
+        if not turn_right() then
+            right = 0
+        else
+            right = right - 1
+        end
+        goto continue
+    end
+
+    if left > 0 then
+        if not turn_left() then
+            left = 0
+        else
+            left = left - 1
+        end
+        goto continue
+    end
+
+    if job == "mine" then
+        if (check_ore(turtle.inspectUp)) then
+            turtle.digUp()
+            if turtle.up() then
+                table.insert(backtrack, turtle.down)
+            end
+            goto continue
+        end
+        if (check_ore(turtle.inspect)) then
+            turtle.dig()
+            if turtle.forward() then
+                table.insert(backtrack, turtle.back)
+            end
+            goto continue
+        end
+        if (check_ore(turtle.inspectDown)) then
+            turtle.digDown()
+            if turtle.down() then
+                table.insert(backtrack, turtle.up)
+            end
+            goto continue
+        end
+
+        if turn_left() then
+            table.insert(backtrack, turn_right)
+        end
+        if (check_ore(turtle.inspect)) then
+            turtle.dig()
+            if turtle.forward() then
+                table.insert(backtrack, turtle.back)
+            end
+            goto continue
+        end
+        table.remove(backtrack)()
+
+        if turn_right() then
+            table.insert(backtrack, turn_left)
+        end
+        if (check_ore(turtle.inspect)) then
+            turtle.dig()
+            if turtle.forward() then
+                table.insert(backtrack, turtle.back)
+            end
+            goto continue
+        end
+        table.remove(backtrack)()
+
+        if #backtrack > 0 then
+            local action = table.remove(backtrack)
+            action()
+        else
+            turtle.dig()
+            if not turtle.forward() then
+                job = nil
+            end
+        end
+
+        goto continue
+    end
+
+    if target then
+        local x, y, z = gps.locate()
+
+        if not target then
+            -- Fix for potential nil after locate
+            goto continue
+        end
+
+        if y < target.y then
+            up = target.y - y
+            goto continue
+        end
+
+        if x ~= target.x then
+            local nx = normalize(target.x - x)
+            if facing.x ~= nx then
+                turn_right()
+                goto continue
+            end
+
+            forward = abs(target.x - x)
+            goto continue
+        end
+
+        if z ~= target.z then
+            local nz = normalize(target.z - z)
+            if facing.z ~= nz then
+                turn_right()
+                goto continue
+            end
+
+            forward = abs(target.z - z)
+            goto continue
+        end
+
+        print("Target reached")
+        target = nil
+        down = 999
+        goto continue
+    end
+
+    os.sleep(1)
+
+    ::continue::
 end
 
 local function network()
