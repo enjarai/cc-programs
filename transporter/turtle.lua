@@ -328,7 +328,10 @@ end
 local function safe_loop(fun)
     local function inner()
         while true do
-            pcall(fun)
+            local success, err = pcall(fun)
+            if not success then
+                print("Error: " .. err)
+            end
         end
     end
     return inner

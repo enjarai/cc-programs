@@ -28,6 +28,10 @@ while true do
     end
 
     rednet.send(id, input, PROTOCOL)
-    local _, message, _ = rednet.receive(PROTOCOL)
-    print(message)
+    local success, message, _ = rednet.receive(PROTOCOL, 2)
+    if success ~= nil then
+        print(message)
+    else
+        print("Wrong command lol")
+    end
 end
