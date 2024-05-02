@@ -1,3 +1,5 @@
+PROTOCOL = "silly_transport_protocol"
+
 local function determine_facing()
     print("Determining facing direction...")
 
@@ -33,22 +35,37 @@ end
 local facing = determine_facing()
 
 local target = nil
-local forward, up, down = 0, 0, 0
+local forward, up, down, right, left = 0, 0, 0, 0, 0
 
 local function turn_left()
     if turtle.turnLeft() then
         facing = vector.new(0, 1, 0):cross(facing)
+        return true
     end
+    return false
 end
 
 local function turn_right()
     if turtle.turnRight() then
         facing = vector.new(0, -1, 0):cross(facing)
+        return true
     end
+    return false
 end
 
 local function normalize(num)
     return num >= 0 and 1 or -1
+end
+
+local function mysplit(inputstr, sep)
+    if sep == nil then
+        sep = "%s"
+    end
+    local t={}
+    for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
+        table.insert(t, str)
+    end
+    return t
 end
 
 local function tick()
@@ -70,6 +87,20 @@ local function tick()
         if down > 0 then
             if not turtle.down() then
                 down = 0
+            end
+            goto continue
+        end
+
+        if right > 0 then
+            if not turn_right() then
+                right = 0
+            end
+            goto continue
+        end
+
+        if left > 0 then
+            if not turn_left() then
+                left = 0
             end
             goto continue
         end
@@ -117,10 +148,36 @@ local function tick()
 end
 
 local function network()
-    repeat
-        local _, key = os.pullEvent("key")
-    until key == keys.q
-    print("Q was pressed!")
+    peripheral.find("modem", rednet.open)
+    rednet.host(PROTOCOL, os.getComputerLabel())
+
+    while true do
+        local id, message = rednet.receive(PROTOCOL)
+        local split_message = mysplit(message, ";")
+
+        if split_message[1] == "target" then
+            target = vector.new(tonumber(split_message[2]), tonumber(split_message[3]), tonumber(split_message[4]))
+            rednet.send(id, "success", PROTOCOL)
+        elseif split_message[1] == "forward" then
+            forward = 99999
+            rednet.send(id, "success", PROTOCOL)
+        elseif split_message[1] == "up" then
+            up = 99999
+            rednet.send(id, "success", PROTOCOL)
+        elseif split_message[1] == "down" then
+            down = 99999
+            rednet.send(id, "success", PROTOCOL)
+        elseif split_message[1] == "left" then
+            left = 99999
+            rednet.send(id, "success", PROTOCOL)
+        elseif split_message[1] == "right" then
+            right = 99999
+            rednet.send(id, "success", PROTOCOL)
+
+        elseif split_message[1] == "ping" then
+            rednet.send(id, "pong", PROTOCOL)
+        end
+    end
 end
 
 facing = determine_facing()
