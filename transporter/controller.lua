@@ -12,13 +12,15 @@ end
 
 print("ping")
 rednet.send(id, "ping", PROTOCOL)
-print(rednet.receive(PROTOCOL))
+local _, message, _ = rednet.receive(PROTOCOL)
+print(message)
 
 while true do
     write(HOSTNAME .. "> ")
     local input = read(nil, history)
-    history:insert(input)
+    table.insert(history, input)
 
     rednet.send(id, input, PROTOCOL)
-    print(rednet.receive(PROTOCOL))
+    local _, message, _ = rednet.receive(PROTOCOL)
+    print(message)
 end

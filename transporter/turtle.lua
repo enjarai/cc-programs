@@ -54,7 +54,7 @@ local function turn_right()
 end
 
 local function normalize(num)
-    return num >= 0 and 1 or -1
+    return (num >= 0) and 1 or -1
 end
 
 local function mysplit(inputstr, sep)
@@ -73,6 +73,8 @@ local function tick()
         if forward > 0 then
             if not turtle.forward() then
                 forward = 0
+            else
+                forward = forward - 1
             end
             goto continue
         end
@@ -80,6 +82,8 @@ local function tick()
         if up > 0 then
             if not turtle.up() then
                 up = 0
+            else
+                up = up - 1
             end
             goto continue
         end
@@ -87,6 +91,8 @@ local function tick()
         if down > 0 then
             if not turtle.down() then
                 down = 0
+            else
+                down = down - 1
             end
             goto continue
         end
@@ -94,6 +100,8 @@ local function tick()
         if right > 0 then
             if not turn_right() then
                 right = 0
+            else
+                right = right - 1
             end
             goto continue
         end
@@ -101,37 +109,44 @@ local function tick()
         if left > 0 then
             if not turn_left() then
                 left = 0
+            else
+                left = left - 1
             end
             goto continue
         end
 
         if target then
-            local pos = vector.new(gps.locate())
+            local x, y, z = gps.locate()
             
-            if pos.y < target.y then
-                up = target.y - pos.y
+            if not target then
+                -- Fix for potential nil after locate
                 goto continue
             end
 
-            if pos.x ~= target.x then
-                local nx = normalize(target.x - pos.x)
-                if not facing.x == nx then
+            if y < target.y then
+                up = target.y - y
+                goto continue
+            end
+
+            if x ~= target.x then
+                local nx = normalize(target.x - x)
+                if facing.x ~= nx then
                     turn_right()
                     goto continue
                 end
 
-                forward = target.x - pos.x
+                forward = target.x - x
                 goto continue
             end
 
-            if pos.z ~= target.z then
-                local nx = normalize(target.x - pos.x)
-                if not facing.x == nx then
+            if z ~= target.z then
+                local nz = normalize(target.z - z)
+                if facing.z ~= nz then
                     turn_right()
                     goto continue
                 end
 
-                forward = target.x - pos.x
+                forward = target.z - z
                 goto continue
             end
 
@@ -168,17 +183,23 @@ local function network()
             down = 99999
             rednet.send(id, "success", PROTOCOL)
         elseif split_message[1] == "left" then
-            left = 99999
+            left = 1
             rednet.send(id, "success", PROTOCOL)
         elseif split_message[1] == "right" then
-            right = 99999
+            right = 1
+            rednet.send(id, "success", PROTOCOL)
+        elseif split_message[1] == "stop" then
+            forward, up, down, right, left = 0, 0, 0, 0, 0
+            target = nil
             rednet.send(id, "success", PROTOCOL)
 
+        elseif split_message[1] == "pos" then
+            local x, y, z = gps.locate()
+            rednet.send(id, ("success;%d;%d;%d"):format(x, y, z), PROTOCOL)
         elseif split_message[1] == "ping" then
             rednet.send(id, "pong", PROTOCOL)
         end
     end
 end
 
-facing = determine_facing()
 parallel.waitForAny(tick, network)
