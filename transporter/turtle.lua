@@ -308,7 +308,9 @@ local function network()
 
         elseif split_message[1] == "pos" then
             local x, y, z = gps.locate()
-            rednet.send(id, ("success;%d;%d;%d"):format(x, y, z), PROTOCOL)
+            rednet.send(id, ("%d %d %d"):format(x, y, z), PROTOCOL)
+        elseif split_message[1] == "facing" then
+            rednet.send(id, facing, PROTOCOL)
         elseif split_message[1] == "ping" then
             rednet.send(id, "pong", PROTOCOL)
         elseif split_message[1] == "inventory" then
