@@ -276,8 +276,12 @@ local function network()
     local split_message = mysplit(message, ";")
 
     if split_message[1] == "target" then
-        target = vector.new(tonumber(split_message[2]), tonumber(split_message[3]), tonumber(split_message[4]))
-        rednet.send(id, "success", PROTOCOL)
+        if facing then
+            target = vector.new(tonumber(split_message[2]), tonumber(split_message[3]), tonumber(split_message[4]))
+            rednet.send(id, "success", PROTOCOL)
+        else
+            rednet.send(id, "can't target, no GPS", PROTOCOL)
+        end
     elseif split_message[1] == "forward" then
         forward = 99999
         rednet.send(id, "success", PROTOCOL)

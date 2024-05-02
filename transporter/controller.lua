@@ -5,17 +5,26 @@ local args = {...}
 local hostname = args[1]
 local history = {}
 
-peripheral.find("modem", rednet.open)
-local id = rednet.lookup(PROTOCOL, hostname)
+local ready = false
+while not ready do
+    peripheral.find("modem", rednet.open)
+    local id = rednet.lookup(PROTOCOL, hostname)
 
-if not id then
-    print("No turtle available")
+    if not id then
+        print("No turtle available")
+    end
+
+    print("ping")
+    rednet.send(id, "ping", PROTOCOL)
+    local success, message, _ = rednet.receive(PROTOCOL, 2)
+    if success then
+        ready = true
+        print(message)
+    else
+        print("Connection failure")
+        os.sleep(2)
+    end
 end
-
-print("ping")
-rednet.send(id, "ping", PROTOCOL)
-local _, message, _ = rednet.receive(PROTOCOL)
-print(message)
 
 while true do
     write(hostname .. "> ")
