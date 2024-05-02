@@ -50,7 +50,9 @@ local forward, back, up, down, right, left = 0, 0, 0, 0, 0, 0
 
 local function turn_left()
     if turtle.turnLeft() then
-        facing = vector.new(0, 1, 0):cross(facing)
+        if facing then
+            facing = vector.new(0, 1, 0):cross(facing)
+        end
         return true
     end
     return false
@@ -58,7 +60,9 @@ end
 
 local function turn_right()
     if turtle.turnRight() then
-        facing = vector.new(0, -1, 0):cross(facing)
+        if facing then
+            facing = vector.new(0, -1, 0):cross(facing)
+        end
         return true
     end
     return false
