@@ -311,6 +311,20 @@ local function network()
             rednet.send(id, ("success;%d;%d;%d"):format(x, y, z), PROTOCOL)
         elseif split_message[1] == "ping" then
             rednet.send(id, "pong", PROTOCOL)
+        elseif split_message[1] == "inventory" then
+            local r = {}
+            for i=1,16 do
+                local d = turtle.getItemDetail(i)
+                if not d then
+                    r[i] = textutils.json_null
+                else
+                    r[i] = {
+                        id = d.name,
+                        count = d.count
+                    }
+                end
+            end
+            rednet.send(id, textutils.serializeJSON(r), PROTOCOL)
         end
     end
 end

@@ -1,10 +1,12 @@
 PROTOCOL = "silly_transport_protocol"
-HOSTNAME = "Jameson"
 
+local args = {...}
+
+local hostname = args[1]
 local history = {}
 
 peripheral.find("modem", rednet.open)
-local id = rednet.lookup(PROTOCOL, HOSTNAME)
+local id = rednet.lookup(PROTOCOL, hostname)
 
 if not id then
     print("No turtle available")
@@ -16,7 +18,7 @@ local _, message, _ = rednet.receive(PROTOCOL)
 print(message)
 
 while true do
-    write(HOSTNAME .. "> ")
+    write(hostname .. "> ")
     local input = read(nil, history)
     table.insert(history, input)
 
