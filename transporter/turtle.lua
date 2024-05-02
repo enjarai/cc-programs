@@ -57,6 +57,10 @@ local function normalize(num)
     return (num >= 0) and 1 or -1
 end
 
+local function abs(num)
+    return (num >= 0) and num or -num
+end
+
 local function mysplit(inputstr, sep)
     if sep == nil then
         sep = "%s"
@@ -135,7 +139,7 @@ local function tick()
                     goto continue
                 end
 
-                forward = target.x - x
+                forward = abs(target.x - x)
                 goto continue
             end
 
@@ -146,7 +150,7 @@ local function tick()
                     goto continue
                 end
 
-                forward = target.z - z
+                forward = abs(target.z - z)
                 goto continue
             end
 
