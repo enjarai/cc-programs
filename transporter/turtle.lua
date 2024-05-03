@@ -269,6 +269,7 @@ local function tick()
                 end
 
                 job["distance"] = job["distance"] - 1
+                save_job()
             else
                 os.sleep(10)
             end
