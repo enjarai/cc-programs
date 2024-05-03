@@ -34,7 +34,7 @@ while true do
 
     if input == "here" then
         local x, y, z = gps.locate()
-        input = ("target;%d;%d;%d"):format(x, y + 10, z)
+        input = ("target;%d;%d;%d"):format(x, y, z)
     end
 
     rednet.send(id, input, PROTOCOL)

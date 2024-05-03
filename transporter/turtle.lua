@@ -144,6 +144,7 @@ end
 
 local function tick()
     if forward > 0 then
+        turtle.dig()
         if not turtle.forward() then
             forward = 0
         else
@@ -162,6 +163,7 @@ local function tick()
     end
 
     if up > 0 then
+        turtle.digUp()
         if not turtle.up() then
             up = 0
         else
@@ -171,6 +173,7 @@ local function tick()
     end
 
     if down > 0 then
+        turtle.digDown()
         if not turtle.down() then
             down = 0
         else
@@ -347,25 +350,25 @@ local function network()
             rednet.send(id, "can't target, no GPS", PROTOCOL)
         end
     elseif split_message[1] == "forward" then
-        forward = 99999
+        forward = tonumber(split_message[2])
         rednet.send(id, "success", PROTOCOL)
     elseif split_message[1] == "back" then
-        back = 99999
+        back = tonumber(split_message[2])
         rednet.send(id, "success", PROTOCOL)
     elseif split_message[1] == "up" then
-        up = 99999
+        up = tonumber(split_message[2])
         rednet.send(id, "success", PROTOCOL)
     elseif split_message[1] == "down" then
-        down = 99999
+        down = tonumber(split_message[2])
         rednet.send(id, "success", PROTOCOL)
     elseif split_message[1] == "left" then
-        left = 1
+        left = tonumber(split_message[2])
         rednet.send(id, "success", PROTOCOL)
     elseif split_message[1] == "right" then
-        right = 1
+        right = tonumber(split_message[2])
         rednet.send(id, "success", PROTOCOL)
     elseif split_message[1] == "stop" then
-        forward, up, down, right, left = 0, 0, 0, 0, 0
+        forward, back, up, down, right, left = 0, 0, 0, 0, 0, 0
         target = nil
         job = nil
         backtrack = {}
@@ -394,7 +397,11 @@ local function network()
         local x, y, z = gps.locate()
         rednet.send(id, ("%d %d %d"):format(x, y, z), PROTOCOL)
     elseif split_message[1] == "facing" then
-        rednet.send(id, facing, PROTOCOL)
+        if facing then
+            rednet.send(id, ("%d %d %d"):format(facing.x, facing.y, facing.z), PROTOCOL)
+        else
+            rednet.send(id, "unknown", PROTOCOL)
+        end
     elseif split_message[1] == "ping" then
         rednet.send(id, "pong", PROTOCOL)
     elseif split_message[1] == "inventory" then
