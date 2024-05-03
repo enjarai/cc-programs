@@ -48,6 +48,26 @@ local job = nil
 local backtrack = {}
 local forward, back, up, down, right, left = 0, 0, 0, 0, 0, 0
 
+local function load_job()
+    if fs.exists("job.json") then
+        local file = fs.open("job.json", "r")
+        job = textutils.unserialiseJSON(file.readAll())
+        file.close()
+    end
+end
+
+local function save_job()
+    if job then
+        local file = fs.open("job.json", "w")
+        file.write(textutils.serialiseJSON(job))
+        file.close()
+    else
+        if fs.exists("job.json") then
+            fs.delete("job.json")
+        end
+    end
+end
+
 local function turn_left()
     if turtle.turnLeft() then
         if facing then
@@ -165,7 +185,7 @@ local function tick()
         goto continue
     end
 
-    if job == "mine" then
+    if job and job["id"] == "mine" then
         if (check_ore(turtle.inspectUp)) then
             turtle.digUp()
             if turtle.up() then
@@ -217,8 +237,28 @@ local function tick()
             action()
         else
             turtle.dig()
-            if not turtle.forward() then
-                job = nil
+            if turtle.forward() then
+                if job["distance"] == job["wrap"] then
+                    if job["right"] then
+                        turn_right()
+                    else
+                        turn_left()
+                    end
+                end
+
+                if job["distance"] == 0 then
+                    if job["right"] then
+                        turn_right()
+                    else
+                        turn_left()
+                    end
+                    job["right"] = not job["right"]
+                    job["distance"] = job["max_distance"]
+                end
+
+                job["distance"] = job["distance"] - 1
+            else
+                os.sleep(10)
             end
         end
 
@@ -305,9 +345,17 @@ local function network()
         target = nil
         job = nil
         backtrack = {}
+        save_job()
         rednet.send(id, "success", PROTOCOL)
     elseif split_message[1] == "mine" then
-        job = "mine"
+        job = {
+            id = "mine",
+            max_distance = split_message[2] + 6,
+            distance = split_message[2] + 6,
+            wrap = 6,
+            right = false
+        }
+        save_job()
         rednet.send(id, "starting", PROTOCOL)
     elseif split_message[1] == "pos" then
         local x, y, z = gps.locate()
@@ -345,6 +393,7 @@ local function safe_loop(fun)
     return inner
 end
 
+load_job()
 peripheral.find("modem", rednet.open)
 rednet.host(PROTOCOL, os.getComputerLabel())
 
