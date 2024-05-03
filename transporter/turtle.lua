@@ -281,6 +281,12 @@ local function tick()
         end
 
         goto continue
+    elseif job and job["id"] == "refuel" then
+        if turtle.place() then
+            turtle.refuel()
+        end
+        os.sleep(0.1)
+        goto continue
     end
 
     if target then
@@ -372,6 +378,12 @@ local function network()
             distance = split_message[2] + 6,
             wrap = 6,
             right = false
+        }
+        save_job()
+        rednet.send(id, "starting", PROTOCOL)
+    elseif split_message[1] == "refuel" then
+        job = {
+            id = "refuel"
         }
         save_job()
         rednet.send(id, "starting", PROTOCOL)
