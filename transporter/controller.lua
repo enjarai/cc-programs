@@ -6,9 +6,10 @@ local hostname = args[1]
 local history = {}
 
 local ready = false
+local id = nil
 while not ready do
     peripheral.find("modem", rednet.open)
-    local id = rednet.lookup(PROTOCOL, hostname)
+    id = rednet.lookup(PROTOCOL, hostname)
 
     if not id then
         print("No turtle available")
