@@ -117,6 +117,18 @@ local function has_value(tab, val)
     return false
 end
 
+local function inventory_full()
+    local not_full = false
+    for i = 1, 16 do
+        local d = turtle.getItemDetail(i)
+        if not d then
+            not_full = true
+            break
+        end
+    end
+    return not not_full
+end
+
 local function check_ore(check_fun)
     local block, data = check_fun()
     if block then
@@ -260,6 +272,11 @@ local function tick()
             else
                 os.sleep(10)
             end
+
+            if inventory_full() then
+                job = nil
+                save_job()
+            end
         end
 
         goto continue
@@ -357,6 +374,9 @@ local function network()
         }
         save_job()
         rednet.send(id, "starting", PROTOCOL)
+
+    elseif split_message[1] == "job" then
+        rednet.send(id, textutils.serializeJSON(job), PROTOCOL)
     elseif split_message[1] == "pos" then
         local x, y, z = gps.locate()
         rednet.send(id, ("%d %d %d"):format(x, y, z), PROTOCOL)
