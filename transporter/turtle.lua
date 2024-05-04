@@ -290,6 +290,15 @@ local function tick()
         end
         os.sleep(0.1)
         goto continue
+    elseif job and job["id"] == "treefarm" then
+        local has_block, data = turtle.inspect()
+        if has_block then
+            if data.tags["minecraft:logs"] then
+                turtle.dig()
+            end
+        else
+            turtle.forward()
+        end
     end
 
     if target then
@@ -418,16 +427,11 @@ local function network()
         end
         rednet.send(id, textutils.serializeJSON(r), PROTOCOL)
     elseif split_message[1] == "treefarm" then
-        while true do
-            local has_block, data = turtle.inspect()
-            if has_block then
-                if data.tags["minecraft:logs"] then
-                    turtle.dig()
-                end
-            else
-                turtle.forward()
-            end
-        end
+        job = {
+            id = "treefarm"
+        }
+        save_job()
+        rednet.send(id, "starting", PROTOCOL)
     end
 end
 
