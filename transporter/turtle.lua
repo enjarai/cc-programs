@@ -390,7 +390,6 @@ local function network()
         }
         save_job()
         rednet.send(id, "starting", PROTOCOL)
-
     elseif split_message[1] == "job" then
         rednet.send(id, textutils.serializeJSON(job), PROTOCOL)
     elseif split_message[1] == "pos" then
@@ -418,6 +417,17 @@ local function network()
             end
         end
         rednet.send(id, textutils.serializeJSON(r), PROTOCOL)
+    elseif split_message[1] == "treefarm" then
+        while true do
+            local has_block, data = turtle.inspect()
+            if has_block then
+                if data.tags["minecraft:logs"] then
+                    turtle.dig()
+                end
+            else
+                turtle.forward()
+            end
+        end
     end
 end
 
