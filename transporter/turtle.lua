@@ -347,6 +347,7 @@ local function tick()
                             end
                         else
                             turtle.up()
+                            job["current_height"] = job["current_height"] + 1
                         end
                     else
                         job["go_down"] = true
