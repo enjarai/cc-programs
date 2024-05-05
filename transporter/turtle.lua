@@ -310,6 +310,7 @@ local function tick()
                     job["current_height"] = job["current_height"] - 1
                     save_job()
                 else
+                    turtle.place()
                     if job["tree_left"] then
                         turn_right()
                     else
