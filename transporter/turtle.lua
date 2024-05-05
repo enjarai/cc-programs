@@ -337,7 +337,7 @@ local function tick()
                     local has_block, data = turtle.inspectUp()
                     if has_block then
                         if data.tags["minecraft:leaves"] then
-                            turtle.dig()
+                            turtle.digUp()
                             turtle.up();
                             job["current_height"] = job["current_height"] + 1
                             save_job()
