@@ -345,6 +345,8 @@ local function tick()
                                 job["go_down"] = true
                                 save_job()
                             end
+                        else
+                            turtle.up()
                         end
                     else
                         job["go_down"] = true
