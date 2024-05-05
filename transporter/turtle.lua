@@ -299,7 +299,7 @@ local function tick()
             else
                 turn_left()
                 turn_left()
-                job["next_tree"] = 7
+                job["next_tree"] = 3
                 job["tree_left"] = not job["tree_left"]
                 save_job()
             end
@@ -490,7 +490,7 @@ local function network()
     elseif split_message[1] == "treefarm" then
         job = {
             id = "treefarm",
-            next_tree = 7,
+            next_tree = 4,
             tree_left = true,
         }
         save_job()
