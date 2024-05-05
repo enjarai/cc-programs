@@ -315,6 +315,9 @@ local function tick()
                     else
                         turn_left()
                     end
+                    job["go_down"] = false
+                    job["next_tree"] = 7
+                    save_job()
                 end
             else
                 if job["current_height"] == nil then
