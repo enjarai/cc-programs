@@ -300,7 +300,7 @@ local function tick()
                 turn_left()
                 turn_left()
                 job["next_tree"] = 7
-                job["tree_left"] = ~job["tree_left"]
+                job["tree_left"] = not job["tree_left"]
                 save_job()
             end
         else
