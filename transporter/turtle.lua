@@ -317,6 +317,7 @@ local function tick()
                     end
                     job["go_down"] = false
                     job["next_tree"] = 7
+                    job["current_height"] = nil
                     save_job()
                 end
             else
@@ -333,18 +334,21 @@ local function tick()
                 if has_block then
                     if data.tags["minecraft:logs"] then
                         turtle.dig()
-                    end
-                    local has_block, data = turtle.inspectUp()
-                    if has_block then
-                        if data.tags["minecraft:leaves"] then
-                            turtle.digUp()
-                            turtle.up();
-                            job["current_height"] = job["current_height"] + 1
-                            save_job()
-                        else
-                            job["go_down"] = true
-                            save_job()
+                        local has_block, data = turtle.inspectUp()
+                        if has_block then
+                            if data.tags["minecraft:leaves"] then
+                                turtle.digUp()
+                                turtle.up();
+                                job["current_height"] = job["current_height"] + 1
+                                save_job()
+                            else
+                                job["go_down"] = true
+                                save_job()
+                            end
                         end
+                    else
+                        job["go_down"] = true
+                        save_job()
                     end
                 else
                     job["go_down"] = true
