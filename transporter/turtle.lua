@@ -291,13 +291,63 @@ local function tick()
         os.sleep(0.1)
         goto continue
     elseif job and job["id"] == "treefarm" then
-        local has_block, data = turtle.inspect()
-        if has_block then
-            if data.tags["minecraft:logs"] then
-                turtle.dig()
+        if job["next_tree"] > 0 then
+            local successful, _ = turtle.forward()
+            if successful then
+                job["next_tree"] = job["next_tree"] - 1
+                save_job()
+            else
+                turn_left()
+                turn_left()
+                job["next_tree"] = 7
+                job["tree_left"] = ~job["tree_left"]
+                save_job()
             end
         else
-            turtle.forward()
+            if job["go_down"] then
+                if job["current_height"] > 0 then
+                    turtle.down()
+                    job["current_height"] = job["current_height"] - 1
+                    save_job()
+                else
+                    if job["tree_left"] then
+                        turn_right()
+                    else
+                        turn_left()
+                    end
+                end
+            else
+                if job["current_height"] == nil then
+                    if job["tree_left"] then
+                        turn_left()
+                    else
+                        turn_right()
+                    end
+                    job["current_height"] = 0
+                    save_job()
+                end
+                local has_block, data = turtle.inspect()
+                if has_block then
+                    if data.tags["minecraft:logs"] then
+                        turtle.dig()
+                    end
+                    local has_block, data = turtle.inspectUp()
+                    if has_block then
+                        if data.tags["minecraft:leaves"] then
+                            turtle.dig()
+                            turtle.up();
+                            job["current_height"] = job["current_height"] + 1
+                            save_job()
+                        else
+                            job["go_down"] = true
+                            save_job()
+                        end
+                    end
+                else
+                    job["go_down"] = true
+                    save_job()
+                end
+            end
         end
     end
 
@@ -428,7 +478,9 @@ local function network()
         rednet.send(id, textutils.serializeJSON(r), PROTOCOL)
     elseif split_message[1] == "treefarm" then
         job = {
-            id = "treefarm"
+            id = "treefarm",
+            next_tree = 7,
+            tree_left = true,
         }
         save_job()
         rednet.send(id, "starting", PROTOCOL)
