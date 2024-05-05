@@ -317,7 +317,7 @@ local function tick()
                         turn_left()
                     end
                     job["go_down"] = false
-                    job["next_tree"] = 3
+                    job["next_tree"] = 7
                     job["current_height"] = nil
                     save_job()
                 end
@@ -491,7 +491,7 @@ local function network()
     elseif split_message[1] == "treefarm" then
         job = {
             id = "treefarm",
-            next_tree = 4,
+            next_tree = 3,
             tree_left = true,
         }
         save_job()
