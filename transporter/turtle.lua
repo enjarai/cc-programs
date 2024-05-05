@@ -317,7 +317,7 @@ local function tick()
                         turn_left()
                     end
                     job["go_down"] = false
-                    job["next_tree"] = 7
+                    job["next_tree"] = 3
                     job["current_height"] = nil
                     save_job()
                 end
