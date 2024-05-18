@@ -404,6 +404,9 @@ local function network()
         end
     elseif split_message[1] == "ping" then
         rednet.send(id, "pong", PROTOCOL)
+    elseif split_message[1] == "reboot" then
+        rednet.send(id, "you got it boss", PROTOCOL)
+        os.reboot()
     elseif split_message[1] == "inventory" then
         local r = {}
         for i = 1, 16 do
